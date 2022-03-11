@@ -14,9 +14,10 @@ contract MovieFoley is Context, ERC20, Ownable {
     uint32 private _treasure = 30000000;
 
     event Burned(address addr, uint256 amount);
+    event Minted(address addr, uint256 amount);
 
     constructor() ERC20(_name, _symbol) {
-        _mint(_msgSender(), _treasure);
+        mintForTreasure(_treasure);
     }
 
     function decimals() public view override returns (uint8) {
@@ -26,5 +27,10 @@ contract MovieFoley is Context, ERC20, Ownable {
     function burn(uint256 amount) public onlyOwner {
         _burn(_msgSender(), amount);
         emit Burned(_msgSender(), amount);
+    }
+
+    function mintForTreasure(uint256 amount) public onlyOwner {
+        _mint(owner(), amount);
+        emit Minted(owner(), amount);
     }
 }
