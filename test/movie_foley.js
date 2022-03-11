@@ -1,7 +1,8 @@
 const MovieFoley = artifacts.require("MovieFoley");
+const expectThrow = require("./helpers/expectThrow");
 
 
-contract("MovieFoley", function ([contractDeployer]) {
+contract("MovieFoley", function ([contractDeployer, another]) {
   let MF;
   before(async () => {
     MF = await MovieFoley.new({ from: contractDeployer });
@@ -18,6 +19,30 @@ contract("MovieFoley", function ([contractDeployer]) {
     assert.equal(4, decimal);
 
     let ownerBalance = await MF.balanceOf(contractDeployer);
-    assert.equal(ownerBalance, 30000000);
+    assert.equal(30000000, ownerBalance);
+  });
+
+  it("should burn", async () => {
+    let burnResult = await MF.burn(1000000, { from: contractDeployer });
+    //event Transfer
+    assert.equal(burnResult.logs[0].event, "Transfer", "Should be the \"Transfer\" event.");
+    assert.equal(burnResult.logs[0].args.from, contractDeployer, "Should be the creator address.");
+    assert.equal(burnResult.logs[0].args.to, 0x0, "Should log the recipient which is the zero address.");
+    assert.equal(burnResult.logs[0].args.value, 1000000, "Should log the amount which is 1,000,000.");
+
+    //event Burned
+    assert.equal(burnResult.logs[1].event, "Burned", "Should be the \"Burned\" event.");
+    assert.equal(burnResult.logs[1].args.addr, contractDeployer, "Should be contract deployer address.");
+    assert.equal(burnResult.logs[1].args.amount, 1000000, "Amount should be 1,000,000.");
+
+    let totalSupply = await MF.totalSupply();
+    assert.equal(29000000, totalSupply);
+
+    let balance = await MF.balanceOf(contractDeployer);
+    assert.equal(29000000, balance);
+  });
+
+  it("should not burn", async () => {
+    await expectThrow(MF.burn(1, { from: another }), "Ownable: caller is not the owner");
   });
 });
