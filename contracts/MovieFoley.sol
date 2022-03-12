@@ -5,7 +5,9 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 
-// import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+interface tokenRecipient {
+    function receiveApproval(address sender, uint256 value) external;
+}
 
 contract MovieFoley is Context, ERC20, Ownable {
     string private _name = "Movie Foley Token";
@@ -32,5 +34,11 @@ contract MovieFoley is Context, ERC20, Ownable {
     function mintForTreasure(uint256 amount) public onlyOwner {
         _mint(owner(), amount);
         emit Minted(owner(), amount);
+    }
+
+    function approveAndCall(address _spender, uint256 _value) public {
+        require(approve(_spender, _value));
+        tokenRecipient spender = tokenRecipient(_spender);
+        spender.receiveApproval(_msgSender(), _value);
     }
 }
