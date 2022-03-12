@@ -52,4 +52,9 @@ contract Bayram is Context, ERC20, Ownable {
         _mint(sender, mintAmount);
         emit Minted(sender, mintAmount);
     }
+
+    function withdrawMovy(uint256 amount) public onlyOwner {
+        MovieFoley mf = MovieFoley(movy);
+        mf.transfer(owner(), amount);
+    }
 }

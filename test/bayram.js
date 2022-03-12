@@ -37,7 +37,7 @@ contract("Bayram", function ([contractDeployer, another]) {
     let anotherMFBalance = await MF.balanceOf(another);
     assert.equal(50, anotherMFBalance)
     let result = await MF.approveAndCall(BA.address, 30, { from: another });
-    console.log(result.logs);
+    // console.log(result.logs);
 
     anotherMFBalance = await MF.balanceOf(another);
     assert.equal(20, anotherMFBalance);
@@ -45,5 +45,18 @@ contract("Bayram", function ([contractDeployer, another]) {
     assert.equal(30, anotherBABalance);
     let BAMFBalance = await MF.balanceOf(BA.address);
     assert.equal(30, BAMFBalance);
+  });
+
+  it("should withdraw movy tokens to owner", async () => {
+    await expectThrow(BA.withdrawMovy(30, { from: another }), "Ownable: caller is not the owner");
+    let withdrawResult = await BA.withdrawMovy(30, { from: contractDeployer });
+    assert.equal(withdrawResult.logs[0].event, "Transfer");
+    assert.equal(withdrawResult.logs[0].args.from, BA.address);
+    assert.equal(withdrawResult.logs[0].args.to, contractDeployer);
+    assert.equal(withdrawResult.logs[0].args.value, 30);
+    let BAMFBalance = await MF.balanceOf(BA.address);
+    assert.equal(0, BAMFBalance);
+    let balance = await MF.balanceOf(contractDeployer);
+    assert.equal(29999980, balance);
   });
 });
