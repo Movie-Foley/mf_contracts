@@ -22,8 +22,22 @@ contract("MovieFoley", function ([contractDeployer, another]) {
     assert.equal(300000000000, ownerBalance);
   });
 
+  it("should pause", async () => {
+    await expectThrow(MF.pause({ from: another }), "Ownable: caller is not the owner");
+    let pauseResult = await MF.pause({ from: contractDeployer });
+    assert.equal(pauseResult.logs[0].event, "Paused");
+    let isPaused = await MF.paused();
+    assert.equal(true, isPaused);
+    await expectThrow(MF.pause({ from: contractDeployer }), "Pausable: paused");
+
+    await expectThrow(MF.unpause({ from: another }), "Ownable: caller is not the owner");
+    pauseResult = await MF.unpause({ from: contractDeployer });
+    assert.equal(pauseResult.logs[0].event, "Unpaused");
+    await expectThrow(MF.unpause({ from: contractDeployer }), "Pausable: not paused");
+  });
+
   it("should burn", async () => {
-    let burnResult = await MF.burn(10000000000, { from: contractDeployer });
+    let burnResult = await MF.burn(contractDeployer, 10000000000, { from: contractDeployer });
     //event Transfer
     assert.equal(burnResult.logs[0].event, "Transfer", "Should be the \"Transfer\" event.");
     assert.equal(burnResult.logs[0].args.from, contractDeployer, "Should be the creator address.");
@@ -41,7 +55,7 @@ contract("MovieFoley", function ([contractDeployer, another]) {
     let balance = await MF.balanceOf(contractDeployer);
     assert.equal(290000000000, balance);
 
-    await expectThrow(MF.burn(1, { from: another }), "Ownable: caller is not the owner");
+    await expectThrow(MF.burn(contractDeployer, 10000, { from: another }), "Ownable: caller is not the owner");
   });
 
   it("should mint for treasure", async () => {
@@ -63,8 +77,6 @@ contract("MovieFoley", function ([contractDeployer, another]) {
 
     let balance = await MF.balanceOf(contractDeployer);
     assert.equal(300000000000, balance);
-
-    await expectThrow(MF.burn(1, { from: another }), "Ownable: caller is not the owner");
   });
 
   it("should transfer", async () => {
@@ -93,5 +105,24 @@ contract("MovieFoley", function ([contractDeployer, another]) {
 
     balance = await MF.balanceOf(another);
     assert.equal(10000012500, balance);
+
+    await MF.pause({ from: contractDeployer });
+    await expectThrow(MF.transfer(another, 1000, { from: contractDeployer }), "Pausable: paused");
+    await MF.unpause({ from: contractDeployer });
+  });
+
+  it("should approve", async () => {
+    await MF.pause({ from: contractDeployer });
+    await expectThrow(MF.approve(another, 1000, { from: contractDeployer }), "Pausable: paused");
+    await MF.unpause({ from: contractDeployer });
+
+    let approveResult = await MF.approve(another, 1000, { from: contractDeployer });
+    assert.equal(approveResult.logs[0].event, "Approval");
+    assert.equal(approveResult.logs[0].args.owner, contractDeployer);
+    assert.equal(approveResult.logs[0].args.spender, another);
+    assert.equal(approveResult.logs[0].args.value, 1000);
+
+    let allowanceResult = await MF.allowance(contractDeployer, another);
+    assert.equal(allowanceResult, 1000);
   });
 });
