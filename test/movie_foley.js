@@ -19,79 +19,79 @@ contract("MovieFoley", function ([contractDeployer, another]) {
     assert.equal(4, decimal);
 
     let ownerBalance = await MF.balanceOf(contractDeployer);
-    assert.equal(30000000, ownerBalance);
+    assert.equal(300000000000, ownerBalance);
   });
 
   it("should burn", async () => {
-    let burnResult = await MF.burn(1000000, { from: contractDeployer });
+    let burnResult = await MF.burn(10000000000, { from: contractDeployer });
     //event Transfer
     assert.equal(burnResult.logs[0].event, "Transfer", "Should be the \"Transfer\" event.");
     assert.equal(burnResult.logs[0].args.from, contractDeployer, "Should be the creator address.");
     assert.equal(burnResult.logs[0].args.to, 0x0, "Should log the recipient which is the zero address.");
-    assert.equal(burnResult.logs[0].args.value, 1000000, "Should log the amount which is 1,000,000.");
+    assert.equal(burnResult.logs[0].args.value, 10000000000, "Should log the amount which is 1,000,000.");
 
     //event Burned
     assert.equal(burnResult.logs[1].event, "Burned", "Should be the \"Burned\" event.");
     assert.equal(burnResult.logs[1].args.addr, contractDeployer, "Should be contract deployer address.");
-    assert.equal(burnResult.logs[1].args.amount, 1000000, "Amount should be 1,000,000.");
+    assert.equal(burnResult.logs[1].args.amount, 10000000000, "Amount should be 1,000,000.");
 
     let totalSupply = await MF.totalSupply();
-    assert.equal(29000000, totalSupply);
+    assert.equal(290000000000, totalSupply);
 
     let balance = await MF.balanceOf(contractDeployer);
-    assert.equal(29000000, balance);
+    assert.equal(290000000000, balance);
 
     await expectThrow(MF.burn(1, { from: another }), "Ownable: caller is not the owner");
   });
 
   it("should mint for treasure", async () => {
-    let mintResult = await MF.mintForTreasure(1000000, { from: contractDeployer });
+    let mintResult = await MF.mintForTreasure(10000000000, { from: contractDeployer });
 
     //event Transfer
     assert.equal(mintResult.logs[0].event, "Transfer", "Should be the \"Transfer\" event.");
     assert.equal(mintResult.logs[0].args.from, 0x0, "Should be the zero address.");
     assert.equal(mintResult.logs[0].args.to, contractDeployer, "Should be the contract deployer address.");
-    assert.equal(mintResult.logs[0].args.value, 1000000, "Should log the amount which is 1,000,000.");
+    assert.equal(mintResult.logs[0].args.value, 10000000000, "Should log the amount which is 1,000,000.");
 
     //event Burned
     assert.equal(mintResult.logs[1].event, "Minted", "Should be the \"Minted\" event.");
     assert.equal(mintResult.logs[1].args.addr, contractDeployer, "Should be contract deployer address.");
-    assert.equal(mintResult.logs[1].args.amount, 1000000, "Amount should be 1,000,000.");
+    assert.equal(mintResult.logs[1].args.amount, 10000000000, "Amount should be 1,000,000.");
 
     let totalSupply = await MF.totalSupply();
-    assert.equal(30000000, totalSupply);
+    assert.equal(300000000000, totalSupply);
 
     let balance = await MF.balanceOf(contractDeployer);
-    assert.equal(30000000, balance);
+    assert.equal(300000000000, balance);
 
     await expectThrow(MF.burn(1, { from: another }), "Ownable: caller is not the owner");
   });
 
   it("should transfer", async () => {
-    let transferResult = await MF.transfer(another, 1000000, { from: contractDeployer });
+    let transferResult = await MF.transfer(another, 10000000000, { from: contractDeployer });
     //event Transfer
     assert.equal(transferResult.logs[0].event, "Transfer", "Should be the \"Transfer\" event.");
     assert.equal(transferResult.logs[0].args.from, contractDeployer, "Should be the contract deployer address.");
     assert.equal(transferResult.logs[0].args.to, another, "Should be the another address.");
-    assert.equal(transferResult.logs[0].args.value, 1000000, "Should log the amount which is 1,000,000.");
+    assert.equal(transferResult.logs[0].args.value, 10000000000, "Should log the amount which is 1,000,000.");
 
     let balance = await MF.balanceOf(contractDeployer);
-    assert.equal(29000000, balance);
+    assert.equal(290000000000, balance);
 
     balance = await MF.balanceOf(another);
-    assert.equal(1000000, balance);
+    assert.equal(10000000000, balance);
 
-    transferResult = await MF.transfer(another, 1.25, { from: contractDeployer });
+    transferResult = await MF.transfer(another, 12500, { from: contractDeployer });
     //event Transfer
     assert.equal(transferResult.logs[0].event, "Transfer", "Should be the \"Transfer\" event.");
     assert.equal(transferResult.logs[0].args.from, contractDeployer, "Should be the contract deployer address.");
     assert.equal(transferResult.logs[0].args.to, another, "Should be the another address.");
-    assert.equal(transferResult.logs[0].args.value, 1.25, "Should log the amount which is 1,000,000.");
+    assert.equal(transferResult.logs[0].args.value, 12500, "Should log the amount which is 12500.");
 
     balance = await MF.balanceOf(contractDeployer);
-    assert.equal(28999998.75, balance);
+    assert.equal(289999987500, balance);
 
     balance = await MF.balanceOf(another);
-    assert.equal(1000001.25, balance);
+    assert.equal(10000012500, balance);
   });
 });

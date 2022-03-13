@@ -26,37 +26,37 @@ contract("Bayram", function ([contractDeployer, another]) {
 
 
     let ownerMovyBalance = await MF.balanceOf(contractDeployer);
-    assert.equal(30000000, ownerMovyBalance);
+    assert.equal(300000000000, ownerMovyBalance);
     let ownerBayramBalance = await BA.balanceOf(contractDeployer);
-    assert.equal(1000, ownerBayramBalance);
+    assert.equal(10000000, ownerBayramBalance);
   });
 
   it("should mint BAY Token with MOVY Token", async () => {
     // TODO: test min/max amount, only movy caller
-    await MF.transfer(another, 50, { from: contractDeployer });
+    await MF.transfer(another, 500000, { from: contractDeployer });
     let anotherMFBalance = await MF.balanceOf(another);
-    assert.equal(50, anotherMFBalance)
-    let result = await MF.approveAndCall(BA.address, 30, { from: another });
+    assert.equal(500000, anotherMFBalance)
+    let result = await MF.approveAndCall(BA.address, 300000, { from: another });
     // console.log(result.logs);
 
     anotherMFBalance = await MF.balanceOf(another);
-    assert.equal(20, anotherMFBalance);
+    assert.equal(200000, anotherMFBalance);
     let anotherBABalance = await BA.balanceOf(another);
-    assert.equal(30, anotherBABalance);
+    assert.equal(300000, anotherBABalance);
     let BAMFBalance = await MF.balanceOf(BA.address);
-    assert.equal(30, BAMFBalance);
+    assert.equal(300000, BAMFBalance);
   });
 
   it("should withdraw movy tokens to owner", async () => {
-    await expectThrow(BA.withdrawMovy(30, { from: another }), "Ownable: caller is not the owner");
-    let withdrawResult = await BA.withdrawMovy(30, { from: contractDeployer });
+    await expectThrow(BA.withdrawMovy(300000, { from: another }), "Ownable: caller is not the owner");
+    let withdrawResult = await BA.withdrawMovy(300000, { from: contractDeployer });
     assert.equal(withdrawResult.logs[0].event, "Transfer");
     assert.equal(withdrawResult.logs[0].args.from, BA.address);
     assert.equal(withdrawResult.logs[0].args.to, contractDeployer);
-    assert.equal(withdrawResult.logs[0].args.value, 30);
+    assert.equal(withdrawResult.logs[0].args.value, 300000);
     let BAMFBalance = await MF.balanceOf(BA.address);
     assert.equal(0, BAMFBalance);
     let balance = await MF.balanceOf(contractDeployer);
-    assert.equal(29999980, balance);
+    assert.equal(299999800000, balance);
   });
 });
