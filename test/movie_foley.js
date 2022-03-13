@@ -80,5 +80,18 @@ contract("MovieFoley", function ([contractDeployer, another]) {
 
     balance = await MF.balanceOf(another);
     assert.equal(1000000, balance);
+
+    transferResult = await MF.transfer(another, 1.25, { from: contractDeployer });
+    //event Transfer
+    assert.equal(transferResult.logs[0].event, "Transfer", "Should be the \"Transfer\" event.");
+    assert.equal(transferResult.logs[0].args.from, contractDeployer, "Should be the contract deployer address.");
+    assert.equal(transferResult.logs[0].args.to, another, "Should be the another address.");
+    assert.equal(transferResult.logs[0].args.value, 1.25, "Should log the amount which is 1,000,000.");
+
+    balance = await MF.balanceOf(contractDeployer);
+    assert.equal(28999998.75, balance);
+
+    balance = await MF.balanceOf(another);
+    assert.equal(1000001.25, balance);
   });
 });

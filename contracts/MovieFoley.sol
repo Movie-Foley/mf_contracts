@@ -13,7 +13,7 @@ contract MovieFoley is Context, ERC20, Ownable {
     string private _name = "Movie Foley Token";
     string private _symbol = "MOVY";
     uint8 private _decimal = 4;
-    uint32 private _treasure = 30000000;
+    uint256 private _treasure = 300000000000;
 
     event Burned(address addr, uint256 amount);
     event Minted(address addr, uint256 amount);

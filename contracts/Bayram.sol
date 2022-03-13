@@ -12,7 +12,7 @@ contract Bayram is Context, ERC20, Ownable {
     string private _name = "Bayram Token";
     string private _symbol = "BAY";
     uint8 private _decimal = 4;
-    uint32 private _treasure = 1000;
+    uint32 private _treasure = 10000000;
     uint8 private _preSaleMovyPrice = 1;
     uint32 private _minMintAmount = 30;
     uint32 private _maxMintAmount = 120;
