@@ -125,4 +125,23 @@ contract("MovieFoley", function ([contractDeployer, another]) {
     let allowanceResult = await MF.allowance(contractDeployer, another);
     assert.equal(allowanceResult, 1000);
   });
+
+  it("should transfer fropm", async () => {
+    await MF.pause({ from: contractDeployer });
+    await expectThrow(MF.transferFrom(contractDeployer, another, 1000, { from: contractDeployer }), "Pausable: paused");
+    await MF.unpause({ from: contractDeployer });
+
+    await MF.approve(contractDeployer, 1000, { from: contractDeployer });
+    let transferFromResult = await MF.transferFrom(contractDeployer, another, 1000, { from: contractDeployer });
+    //event Approval
+    assert.equal(transferFromResult.logs[0].event, "Approval", "Should be the \"Transfer\" event.");
+    assert.equal(transferFromResult.logs[0].args.owner, contractDeployer, "Should be the contract deployer address.");
+    assert.equal(transferFromResult.logs[0].args.spender, contractDeployer, "Should be the contractDeployer address.");
+    assert.equal(transferFromResult.logs[0].args.value, 0, "Should log the amount which is 1000.");
+    //event Transfer
+    assert.equal(transferFromResult.logs[1].event, "Transfer", "Should be the \"Transfer\" event.");
+    assert.equal(transferFromResult.logs[1].args.from, contractDeployer, "Should be the contract deployer address.");
+    assert.equal(transferFromResult.logs[1].args.to, another, "Should be the another address.");
+    assert.equal(transferFromResult.logs[1].args.value, 1000, "Should log the amount which is 1000.");
+  });
 });
