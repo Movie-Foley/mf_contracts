@@ -71,6 +71,7 @@ contract("MovieFoley", function ([contractDeployer, another]) {
     assert.equal(mintResult.logs[1].event, "Minted", "Should be the \"Minted\" event.");
     assert.equal(mintResult.logs[1].args.addr, contractDeployer, "Should be contract deployer address.");
     assert.equal(mintResult.logs[1].args.amount, 10000000000, "Amount should be 1,000,000.");
+    assert.equal(mintResult.logs[1].args.option, 0, "Option should be 0.");
 
     let totalSupply = await MF.totalSupply();
     assert.equal(300000000000, totalSupply);

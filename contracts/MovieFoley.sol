@@ -17,7 +17,7 @@ contract MovieFoley is Context, ERC20, Ownable, Pausable {
     uint256 private _treasure = 300000000000;
 
     event Burned(address addr, uint256 amount);
-    event Minted(address addr, uint256 amount);
+    event Minted(address addr, uint256 amount, uint8 option);
 
     constructor() ERC20(_name, _symbol) {
         mintForTreasure(_treasure);
@@ -42,7 +42,7 @@ contract MovieFoley is Context, ERC20, Ownable, Pausable {
 
     function mintForTreasure(uint256 amount) public onlyOwner {
         _mint(owner(), amount);
-        emit Minted(owner(), amount);
+        emit Minted(owner(), amount, 0);
     }
 
     function transfer(address to, uint256 amount)
