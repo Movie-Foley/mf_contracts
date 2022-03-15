@@ -67,7 +67,7 @@ contract("MovieFoley", function ([contractDeployer, another]) {
     assert.equal(mintResult.logs[0].args.to, contractDeployer, "Should be the contract deployer address.");
     assert.equal(mintResult.logs[0].args.value, 10000000000, "Should log the amount which is 1,000,000.");
 
-    //event Burned
+    //event Minted
     assert.equal(mintResult.logs[1].event, "Minted", "Should be the \"Minted\" event.");
     assert.equal(mintResult.logs[1].args.addr, contractDeployer, "Should be contract deployer address.");
     assert.equal(mintResult.logs[1].args.amount, 10000000000, "Amount should be 1,000,000.");

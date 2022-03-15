@@ -70,10 +70,4 @@ contract MovieFoley is Context, ERC20, Ownable, Pausable {
     ) public override whenNotPaused returns (bool) {
         return super.transferFrom(from, to, amount);
     }
-
-    function approveAndCall(address _spender, uint256 _value) public {
-        require(approve(_spender, _value));
-        tokenRecipient spender = tokenRecipient(_spender);
-        spender.receiveApproval(_msgSender(), _value);
-    }
 }

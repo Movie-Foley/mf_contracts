@@ -6,17 +6,17 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "./MovieFoley.sol";
 
-// import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-
 contract Bayram is Context, ERC20, Ownable {
     string private _name = "Bayram Token";
     string private _symbol = "BAY";
     uint8 private _decimal = 4;
-    uint32 private _treasure = 10000000;
-    uint8 private _preSaleMovyPrice = 1;
-    uint32 private _minMintAmount = 30;
-    uint32 private _maxMintAmount = 120;
+    uint32 private _treasure = 10000000; // 1000
+    uint32 private _minMintAmount = 300000; // 30
+    uint32 private _maxMintAmount = 1200000; // 120
     address public movy;
+    uint256 public preSaleMovyPrice = 5000; // 0.5 MOVY
+    uint256 public maxSupply = 11000000; // 1100
+    bool public isPreSaleActive = true;
 
     event Burned(address addr, uint256 amount);
     event Minted(address addr, uint256 amount);
@@ -35,9 +35,9 @@ contract Bayram is Context, ERC20, Ownable {
         return _decimal;
     }
 
-    function burn(uint256 amount) public onlyOwner {
-        _burn(_msgSender(), amount);
-        emit Burned(_msgSender(), amount);
+    function burn(address from, uint256 amount) public onlyOwner {
+        _burn(from, amount);
+        emit Burned(from, amount);
     }
 
     function mintForTreasure(uint256 amount) public onlyOwner {
@@ -45,16 +45,22 @@ contract Bayram is Context, ERC20, Ownable {
         emit Minted(owner(), amount);
     }
 
-    function receiveApproval(address sender, uint256 amount) external onlyMovy {
-        MovieFoley mf = MovieFoley(movy);
-        require(mf.transferFrom(sender, address(this), amount));
-        uint256 mintAmount = amount / _preSaleMovyPrice;
-        _mint(sender, mintAmount);
-        emit Minted(sender, mintAmount);
+    function setPreSale(bool _sale) external onlyOwner {
+        isPreSaleActive = _sale;
     }
 
-    function withdrawMovy(uint256 amount) public onlyOwner {
+    function buy(uint256 amount) external {
+        require(isPreSaleActive, "Presale is over");
+        require(_minMintAmount <= amount, "Minimum amount not exceeded");
+        require(_maxMintAmount >= amount, "Maximum amount exceeded");
+        require(totalSupply() + amount <= maxSupply, "Maximum supply exceeded");
         MovieFoley mf = MovieFoley(movy);
-        mf.transfer(owner(), amount);
+        mf.transferFrom(
+            _msgSender(),
+            owner(),
+            (amount * preSaleMovyPrice) / 10000
+        );
+        _mint(_msgSender(), amount);
+        emit Minted(_msgSender(), amount);
     }
 }
