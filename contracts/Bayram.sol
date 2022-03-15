@@ -16,9 +16,9 @@ contract Bayram is Context, ERC20, Ownable {
     uint32 private _minMintAmount = 300000; // 30
     uint32 private _maxMintAmount = 1200000; // 120
     address public movy;
-    uint256 public ICOMovyPrice = 5000; // 0.5 MOVY
-    uint256 public ICOLimit = 1000000; // 100
-    uint256 public ICOMinted = 0; // 0
+    uint256 public constant ICO_MOVY_PRICE = 5000; // 0.5 MOVY
+    uint256 public constant ICO_LIMIT = 1000000; // 100
+    uint256 public ICO_MINTED = 0; // 0
     bool public isICOActive = true;
 
     event Burned(address addr, uint256 amount);
@@ -56,11 +56,18 @@ contract Bayram is Context, ERC20, Ownable {
         require(isICOActive, "ICO is over");
         require(_minMintAmount <= amount, "Minimum amount not exceeded");
         require(_maxMintAmount >= amount, "Maximum amount exceeded");
-        require(ICOMinted + amount <= ICOLimit, "Maximum ICO supply exceeded");
+        require(
+            ICO_MINTED + amount <= ICO_LIMIT,
+            "Maximum ICO supply exceeded"
+        );
         MovieFoley mf = MovieFoley(movy);
-        mf.transferFrom(_msgSender(), owner(), (amount * ICOMovyPrice) / 10000);
+        mf.transferFrom(
+            _msgSender(),
+            owner(),
+            (amount * ICO_MOVY_PRICE) / 10000
+        );
         _mint(_msgSender(), amount);
-        ICOMinted = ICOMinted + amount;
+        ICO_MINTED = ICO_MINTED + amount;
         emit Minted(_msgSender(), amount);
     }
 }

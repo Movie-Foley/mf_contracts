@@ -72,8 +72,8 @@ contract("Bayram", function ([contractDeployer, another]) {
     totalSupply = await BA.totalSupply();
     assert.equal(10900000, totalSupply);
 
-    let ICOMinted = await BA.ICOMinted();
-    assert.equal(900000, ICOMinted);
+    let ICO_MINTED = await BA.ICO_MINTED();
+    assert.equal(900000, ICO_MINTED);
 
     await expectThrow(BA.buy(450000, { from: another }), "Maximum ICO supply exceeded");
 

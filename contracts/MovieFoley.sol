@@ -16,10 +16,18 @@ contract MovieFoley is Context, ERC20, Ownable, Pausable {
     uint8 private _decimal = 4;
     uint256 private _treasure = 300000000000;
 
+    address public busd;
+
+    bool public isICOActive = true;
+    uint256 public ICOBUSDPrice = 5000; // 0.5 MOVY
+    uint256 public ICOLimit = 1000000; // 100
+    uint256 public ICOMinted = 0; // 0
+
     event Burned(address addr, uint256 amount);
     event Minted(address addr, uint256 amount, uint8 option);
 
     constructor() ERC20(_name, _symbol) {
+        // busd = _busd;
         mintForTreasure(_treasure);
     }
 
