@@ -39,7 +39,6 @@ contract("Bayram", function ([contractDeployer, another]) {
     await MF.transfer(another, 10000000, { from: contractDeployer });
     await MF.approve(BA.address, 450000, { from: another });
 
-    // TODO: test max supply
 
     await expectThrow(BA.buy(1000, { from: another }), "Minimum amount not exceeded");
     await expectThrow(BA.buy(10000000000, { from: another }), "Maximum amount exceeded");
@@ -73,7 +72,10 @@ contract("Bayram", function ([contractDeployer, another]) {
     totalSupply = await BA.totalSupply();
     assert.equal(10900000, totalSupply);
 
-    await expectThrow(BA.buy(450000, { from: another }), "Maximum supply exceeded");
+    let preSaleMinted = await BA.preSaleMinted();
+    assert.equal(900000, preSaleMinted);
+
+    await expectThrow(BA.buy(450000, { from: another }), "Maximum Pre-Sale supply exceeded");
 
     await BA.setPreSale(false, { from: contractDeployer });
     await expectThrow(BA.buy(450000, { from: another }), "Presale is over");

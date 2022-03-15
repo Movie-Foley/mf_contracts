@@ -15,7 +15,8 @@ contract Bayram is Context, ERC20, Ownable {
     uint32 private _maxMintAmount = 1200000; // 120
     address public movy;
     uint256 public preSaleMovyPrice = 5000; // 0.5 MOVY
-    uint256 public maxSupply = 11000000; // 1100
+    uint256 public preSaleLimit = 1000000; // 100
+    uint256 public preSaleMinted = 0; // 0
     bool public isPreSaleActive = true;
 
     event Burned(address addr, uint256 amount);
@@ -53,7 +54,10 @@ contract Bayram is Context, ERC20, Ownable {
         require(isPreSaleActive, "Presale is over");
         require(_minMintAmount <= amount, "Minimum amount not exceeded");
         require(_maxMintAmount >= amount, "Maximum amount exceeded");
-        require(totalSupply() + amount <= maxSupply, "Maximum supply exceeded");
+        require(
+            preSaleMinted + amount <= preSaleLimit,
+            "Maximum Pre-Sale supply exceeded"
+        );
         MovieFoley mf = MovieFoley(movy);
         mf.transferFrom(
             _msgSender(),
@@ -61,6 +65,7 @@ contract Bayram is Context, ERC20, Ownable {
             (amount * preSaleMovyPrice) / 10000
         );
         _mint(_msgSender(), amount);
+        preSaleMinted = preSaleMinted + amount;
         emit Minted(_msgSender(), amount);
     }
 }
