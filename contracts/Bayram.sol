@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.4.22 <0.9.0;
+pragma solidity =0.8.12;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -13,13 +13,13 @@ contract Bayram is Context, ERC20, Ownable {
     string private _symbol = "BAY";
     uint8 private _decimal = 4;
     uint32 private _treasure = 10000000; // 1000
-    uint32 private _minMintAmount = 300000; // 30
-    uint32 private _maxMintAmount = 1200000; // 120
+    uint32 private constant MIN_MINT_AMOUNT = 300000; // 30
+    uint32 private constant MAX_MINT_AMOUNT = 1200000; // 120
     address public movy;
     uint256 public constant ICO_MOVY_PRICE = 5000; // 0.5 MOVY
     uint256 public constant ICO_LIMIT = 1000000; // 100
-    uint256 public ICO_MINTED = 0; // 0
-    bool public isICOActive = true;
+    uint256 public mintedICO = 0; // 0
+    bool private isICOActive = true;
 
     event Burned(address addr, uint256 amount);
     event Minted(address addr, uint256 amount);
@@ -54,12 +54,9 @@ contract Bayram is Context, ERC20, Ownable {
 
     function buy(uint256 amount) external {
         require(isICOActive, "ICO is over");
-        require(_minMintAmount <= amount, "Minimum amount not exceeded");
-        require(_maxMintAmount >= amount, "Maximum amount exceeded");
-        require(
-            ICO_MINTED + amount <= ICO_LIMIT,
-            "Maximum ICO supply exceeded"
-        );
+        require(MIN_MINT_AMOUNT <= amount, "Minimum amount not exceeded");
+        require(MAX_MINT_AMOUNT >= amount, "Maximum amount exceeded");
+        require(mintedICO + amount <= ICO_LIMIT, "Maximum ICO supply exceeded");
         MovieFoley mf = MovieFoley(movy);
         mf.transferFrom(
             _msgSender(),
@@ -67,7 +64,7 @@ contract Bayram is Context, ERC20, Ownable {
             (amount * ICO_MOVY_PRICE) / 10000
         );
         _mint(_msgSender(), amount);
-        ICO_MINTED = ICO_MINTED + amount;
+        mintedICO = mintedICO + amount;
         emit Minted(_msgSender(), amount);
     }
 }
