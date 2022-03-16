@@ -31,7 +31,7 @@ contract("Bayram", function ([contractDeployer, another]) {
     assert.equal(10000000, ownerBayramBalance);
   });
 
-  it("should buy", async () => {
+  it("should buy option 1", async () => {
     // console.log("DEPLOYER: " + contractDeployer);
     // console.log("another: " + another);
     // console.log("MF: " + MF.address);
@@ -66,10 +66,14 @@ contract("Bayram", function ([contractDeployer, another]) {
     assert.equal(300000, anotherBABalance);
     let totalSupply = await BA.totalSupply();
     assert.equal(10300000, totalSupply);
+    let anotherMFBalance = await MF.balanceOf(another);
+    assert.equal(9850000, anotherMFBalance);
 
     buyResult = await BA.buy(300000, 1, { from: another });
     anotherBABalance = await BA.balanceOf(another);
     assert.equal(600000, anotherBABalance);
+    anotherMFBalance = await MF.balanceOf(another);
+    assert.equal(9700000, anotherMFBalance);
     totalSupply = await BA.totalSupply();
     assert.equal(10600000, totalSupply);
 
@@ -81,5 +85,33 @@ contract("Bayram", function ([contractDeployer, another]) {
 
     await BA.setICO(false, { from: contractDeployer });
     await expectThrow(BA.buy(450000, 1, { from: another }), "ICO is over");
+    await BA.setICO(true, { from: contractDeployer });
+  });
+
+  it("should buy option 2", async () => {
+    let optionCount = await BA.ICO_OPTION_COUNT();
+    assert.equal(2, optionCount);
+    let buyResult = await BA.buy(200000, 2, { from: another });
+    //event Transfer
+    assert.equal(buyResult.logs[1].event, "Transfer", "Should be the \"Transfer\" event.");
+    assert.equal(buyResult.logs[1].args.from, another, "Should be the another address.");
+    assert.equal(buyResult.logs[1].args.to, contractDeployer, "Should be the contractDeployer address.");
+    assert.equal(buyResult.logs[1].args.value, 50000, "Should log the amount which is 50.");
+    //event Minted
+    assert.equal(buyResult.logs[2].event, "Minted", "Should be the \"Minted\" event.");
+    assert.equal(buyResult.logs[2].args.addr, another, "Should be another address.");
+    assert.equal(buyResult.logs[2].args.amount, 200000, "Amount should be 20.");
+    assert.equal(buyResult.logs[2].args.option, 2, "Option should be 2.");
+
+    let totalMintedICO = await BA.totalMintedICO(2);
+    assert.equal(200000, totalMintedICO);
+
+    let anotherBABalanceOfLocked = await BA.balanceOfLocked(another, 2);
+    assert.equal(200000, anotherBABalanceOfLocked)
+    let anotherBABalance = await BA.balanceOf(another);
+    assert.equal(800000, anotherBABalance);
+    await expectThrow(BA.transfer(contractDeployer, 700000, { from: another }), "ERC20: transfer amount exceeds balance");
+    let anotherMFBalance = await MF.balanceOf(another);
+    assert.equal(9650000, anotherMFBalance);
   });
 });

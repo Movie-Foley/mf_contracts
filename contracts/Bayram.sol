@@ -13,6 +13,7 @@ contract Bayram is Context, ERC20, Ownable {
     string private _symbol = "BAY";
     uint8 private _decimal = 4;
     uint32 private _treasure = 10000000; // 1000
+
     address public movy;
 
     struct ICOOption {
@@ -23,17 +24,13 @@ contract Bayram is Context, ERC20, Ownable {
         bool isLocked;
         uint256 totalMinted;
     }
-    bool private isICOActive = true;
     mapping(uint8 => ICOOption) private ICO_OPTIONS;
     mapping(uint8 => mapping(address => uint256)) private MINTED_ICOS;
+    bool private isICOActive = true;
+    uint8 public constant ICO_OPTION_COUNT = 2;
 
     event Burned(address addr, uint256 amount);
     event Minted(address addr, uint256 amount, uint8 option);
-
-    modifier onlyMovy() {
-        require(movy == _msgSender(), "Caller is not the MovieFoley Contract");
-        _;
-    }
 
     constructor(address _movy) ERC20(_name, _symbol) {
         movy = _movy;
@@ -44,6 +41,14 @@ contract Bayram is Context, ERC20, Ownable {
             limit: 1000000, // 100
             price: 5000, // 0.5 MOVY
             isLocked: false,
+            totalMinted: 0
+        });
+        ICO_OPTIONS[2] = ICOOption({
+            minMint: 100000, // 10
+            maxMint: 200000, // 20
+            limit: 500000, // 50
+            price: 2500, // 0.25 MOVY
+            isLocked: true,
             totalMinted: 0
         });
     }
@@ -62,8 +67,33 @@ contract Bayram is Context, ERC20, Ownable {
         emit Minted(owner(), amount, 0);
     }
 
+    function balanceOf(address account) public view override returns (uint256) {
+        uint256 balance = super.balanceOf(account);
+        for (uint8 i = 1; i <= ICO_OPTION_COUNT; i++) {
+            if (ICO_OPTIONS[i].isLocked) {
+                balance += MINTED_ICOS[i][account];
+            }
+        }
+        return balance;
+    }
+
+    function balanceOfLocked(address account, uint8 option)
+        public
+        view
+        returns (uint256)
+    {
+        require(
+            1 <= option && option <= ICO_OPTION_COUNT,
+            "ICO option is not valid."
+        );
+        return MINTED_ICOS[option][account];
+    }
+
     function totalMintedICO(uint8 option) public view returns (uint256) {
-        require(1 <= option && option <= 1, "ICO option is not valid.");
+        require(
+            1 <= option && option <= ICO_OPTION_COUNT,
+            "ICO option is not valid."
+        );
         return ICO_OPTIONS[option].totalMinted;
     }
 
@@ -72,8 +102,12 @@ contract Bayram is Context, ERC20, Ownable {
     }
 
     function buy(uint256 amount, uint8 option) external {
+        address _sender = _msgSender();
+        require(
+            1 <= option && option <= ICO_OPTION_COUNT,
+            "ICO option is not valid."
+        );
         require(isICOActive, "ICO is over");
-        require(1 <= option && option <= 1, "ICO option is not valid.");
         require(
             ICO_OPTIONS[option].minMint <= amount,
             "Minimum amount not exceeded"
@@ -88,19 +122,21 @@ contract Bayram is Context, ERC20, Ownable {
             "Maximum ICO supply exceeded"
         );
         require(
-            MINTED_ICOS[option][_msgSender()] + amount <=
+            MINTED_ICOS[option][_sender] + amount <=
                 ICO_OPTIONS[option].maxMint,
             "Maximum ICO supply per account exceeded"
         );
         MovieFoley mf = MovieFoley(movy);
         mf.transferFrom(
-            _msgSender(),
+            _sender,
             owner(),
             (amount * ICO_OPTIONS[option].price) / 10000
         );
-        _mint(_msgSender(), amount);
+        if (!ICO_OPTIONS[option].isLocked) {
+            _mint(_sender, amount);
+        }
         ICO_OPTIONS[option].totalMinted += amount;
-        MINTED_ICOS[option][_msgSender()] += amount;
-        emit Minted(_msgSender(), amount, 1);
+        MINTED_ICOS[option][_sender] += amount;
+        emit Minted(_sender, amount, option);
     }
 }

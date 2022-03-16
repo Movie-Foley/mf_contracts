@@ -127,7 +127,7 @@ contract("MovieFoley", function ([contractDeployer, another]) {
     assert.equal(allowanceResult, 1000);
   });
 
-  it("should transfer fropm", async () => {
+  it("should transfer from", async () => {
     await MF.pause({ from: contractDeployer });
     await expectThrow(MF.transferFrom(contractDeployer, another, 1000, { from: contractDeployer }), "Pausable: paused");
     await MF.unpause({ from: contractDeployer });
