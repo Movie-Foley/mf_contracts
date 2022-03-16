@@ -37,13 +37,13 @@ contract("Bayram", function ([contractDeployer, another]) {
     // console.log("MF: " + MF.address);
     // console.log("BA: " + BA.address);
     await MF.transfer(another, 10000000, { from: contractDeployer });
-    await MF.approve(BA.address, 450000, { from: another });
+    await MF.approve(BA.address, 10000000, { from: another });
+    await MF.approve(BA.address, 10000000, { from: contractDeployer });
 
+    await expectThrow(BA.buy(1000, 1, { from: another }), "Minimum amount not exceeded");
+    await expectThrow(BA.buy(10000000000, 1, { from: another }), "Maximum amount exceeded");
 
-    await expectThrow(BA.buy(1000, { from: another }), "Minimum amount not exceeded");
-    await expectThrow(BA.buy(10000000000, { from: another }), "Maximum amount exceeded");
-
-    let buyResult = await BA.buy(300000, { from: another });
+    let buyResult = await BA.buy(300000, 1, { from: another });
     //event Transfer
     assert.equal(buyResult.logs[1].event, "Transfer", "Should be the \"Transfer\" event.");
     assert.equal(buyResult.logs[1].args.from, another, "Should be the another address.");
@@ -56,28 +56,30 @@ contract("Bayram", function ([contractDeployer, another]) {
     assert.equal(buyResult.logs[2].args.to, another, "Should be the another address.");
     assert.equal(buyResult.logs[2].args.value, 300000, "Should log the amount which is 30.");
 
-    //event Burned
+    //event Minted
     assert.equal(buyResult.logs[3].event, "Minted", "Should be the \"Minted\" event.");
     assert.equal(buyResult.logs[3].args.addr, another, "Should be another address.");
     assert.equal(buyResult.logs[3].args.amount, 300000, "Amount should be 30.");
+    assert.equal(buyResult.logs[3].args.option, 1, "Option should be 1.");
 
     let anotherBABalance = await BA.balanceOf(another);
     assert.equal(300000, anotherBABalance);
     let totalSupply = await BA.totalSupply();
     assert.equal(10300000, totalSupply);
 
-    buyResult = await BA.buy(600000, { from: another });
+    buyResult = await BA.buy(300000, 1, { from: another });
     anotherBABalance = await BA.balanceOf(another);
-    assert.equal(900000, anotherBABalance);
+    assert.equal(600000, anotherBABalance);
     totalSupply = await BA.totalSupply();
-    assert.equal(10900000, totalSupply);
+    assert.equal(10600000, totalSupply);
 
-    let mintedICO = await BA.mintedICO();
-    assert.equal(900000, mintedICO);
+    let totalMintedICO = await BA.totalMintedICO(1);
+    assert.equal(600000, totalMintedICO);
 
-    await expectThrow(BA.buy(450000, { from: another }), "Maximum ICO supply exceeded");
+    await expectThrow(BA.buy(300000, 1, { from: another }), "Maximum ICO supply per account exceeded");
+    await expectThrow(BA.buy(450000, 1, { from: contractDeployer }), "Maximum ICO supply exceeded");
 
     await BA.setICO(false, { from: contractDeployer });
-    await expectThrow(BA.buy(450000, { from: another }), "ICO is over");
+    await expectThrow(BA.buy(450000, 1, { from: another }), "ICO is over");
   });
 });
