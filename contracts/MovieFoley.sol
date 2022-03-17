@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.12;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
@@ -20,10 +21,13 @@ contract MovieFoley is Context, ERC20, Ownable, Pausable {
         uint256 limit;
         uint256 price;
         bool isLocked;
+        bool isAmountUnlocked;
         uint256 totalMinted;
     }
     mapping(uint8 => ICOOption) private ICO_OPTIONS;
+    mapping(uint8 => uint256) private ICO_TOTAL_HOLDERS;
     mapping(uint8 => mapping(address => uint256)) private ICO_MINTEDS;
+    mapping(uint8 => mapping(uint256 => address)) private ICO_HOLDERS;
     bool private isICOActive = true;
     uint8 public constant ICO_OPTION_COUNT = 4;
 
@@ -38,8 +42,8 @@ contract MovieFoley is Context, ERC20, Ownable, Pausable {
         _;
     }
 
-    constructor() ERC20(_name, _symbol) {
-        // busd = _busd;
+    constructor(address _busd) ERC20(_name, _symbol) {
+        busd = _busd;
         mintForTreasure(_treasure);
         ICO_OPTIONS[1] = ICOOption({
             minMint: 300000, // 30
@@ -47,6 +51,7 @@ contract MovieFoley is Context, ERC20, Ownable, Pausable {
             limit: 65000000000, // 6,500,000
             price: 200000000000000000, // 0.2 BUSD
             isLocked: true,
+            isAmountUnlocked: false,
             totalMinted: 0
         });
         ICO_OPTIONS[2] = ICOOption({
@@ -55,6 +60,7 @@ contract MovieFoley is Context, ERC20, Ownable, Pausable {
             limit: 55000000000, // 5,500,000
             price: 400000000000000000, // 0.4 BUSD
             isLocked: true,
+            isAmountUnlocked: false,
             totalMinted: 0
         });
         ICO_OPTIONS[3] = ICOOption({
@@ -63,6 +69,7 @@ contract MovieFoley is Context, ERC20, Ownable, Pausable {
             limit: 40000000000, // 4,000,000
             price: 700000000000000000, // 0.7 BUSD
             isLocked: true,
+            isAmountUnlocked: false,
             totalMinted: 0
         });
         ICO_OPTIONS[4] = ICOOption({
@@ -71,6 +78,7 @@ contract MovieFoley is Context, ERC20, Ownable, Pausable {
             limit: 40000000000, // 4,000,000
             price: 900000000000000000, // 0.9 BUSD
             isLocked: false,
+            isAmountUnlocked: true,
             totalMinted: 0
         });
     }
@@ -123,6 +131,59 @@ contract MovieFoley is Context, ERC20, Ownable, Pausable {
         return super.transferFrom(from, to, amount);
     }
 
+    function balanceOf(address account) public view override returns (uint256) {
+        uint256 balance = super.balanceOf(account);
+        for (uint8 i = 1; i <= ICO_OPTION_COUNT; i++) {
+            if (ICO_OPTIONS[i].isLocked && !ICO_OPTIONS[i].isAmountUnlocked) {
+                balance += ICO_MINTEDS[i][account];
+            }
+        }
+        return balance;
+    }
+
+    function balanceOfLocked(address account, uint8 option)
+        public
+        view
+        returns (uint256)
+    {
+        require(
+            1 <= option && option <= ICO_OPTION_COUNT,
+            "ICO option is not valid."
+        );
+        if (ICO_OPTIONS[option].isAmountUnlocked) {
+            return 0;
+        }
+        return ICO_MINTEDS[option][account];
+    }
+
+    function unlockICOBalances(uint8 option)
+        public
+        onlyOwner
+        isICOOptionValid(option)
+    {
+        require(ICO_OPTIONS[option].isLocked, "ICO option is not valid.");
+        require(
+            !ICO_OPTIONS[option].isAmountUnlocked,
+            "ICO amounts have been already unlocked!"
+        );
+        for (uint256 i = 0; i < ICO_TOTAL_HOLDERS[option]; i++) {
+            _mint(
+                ICO_HOLDERS[option][i],
+                ICO_MINTEDS[option][ICO_HOLDERS[option][i]]
+            );
+        }
+        ICO_OPTIONS[option].isAmountUnlocked = true;
+    }
+
+    function totalICOHolder(uint8 option)
+        public
+        view
+        isICOOptionValid(option)
+        returns (uint256)
+    {
+        return ICO_TOTAL_HOLDERS[option];
+    }
+
     function totalMintedICO(uint8 option)
         public
         view
@@ -156,15 +217,19 @@ contract MovieFoley is Context, ERC20, Ownable, Pausable {
                 ICO_OPTIONS[option].maxMint,
             "Maximum ICO supply per account exceeded"
         );
-        // MovieFoley mf = MovieFoley(movy);
-        // mf.transferFrom(
-        //     _sender,
-        //     owner(),
-        //     (amount * ICO_MOVY_PRICE) / 10000
-        // );
-        // TODO: check is locked
-        _mint(_sender, amount);
+        IERC20(busd).transferFrom(
+            _sender,
+            owner(),
+            (amount * ICO_OPTIONS[option].price) / 1000000000000000000
+        );
+        if (!ICO_OPTIONS[option].isLocked) {
+            _mint(_sender, amount);
+        }
         ICO_OPTIONS[option].totalMinted += amount;
+        if (ICO_MINTEDS[option][_sender] == 0) {
+            ICO_HOLDERS[option][ICO_TOTAL_HOLDERS[option]] = _sender;
+            ICO_TOTAL_HOLDERS[option]++;
+        }
         ICO_MINTEDS[option][_sender] += amount;
         emit Minted(_sender, amount, option);
     }

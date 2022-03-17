@@ -1,11 +1,14 @@
+const BUSD = artifacts.require("BUSD");
 const MovieFoley = artifacts.require("MovieFoley");
+
 const expectThrow = require("./helpers/expectThrow");
 
-
 contract("MovieFoley", function ([contractDeployer, another]) {
+  let BSD;
   let MF;
   before(async () => {
-    MF = await MovieFoley.new({ from: contractDeployer });
+    BSD = await BUSD.new({ from: contractDeployer });
+    MF = await MovieFoley.new(BSD.address, { from: contractDeployer });
   });
 
   it("should has been set name, decimal, symbol and owner then mint 30,000,000 token to owner", async () => {

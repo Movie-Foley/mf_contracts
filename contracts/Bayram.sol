@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.12;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
-import "./MovieFoley.sol";
 
 // DUMMY TOKEN
 
@@ -170,8 +170,7 @@ contract Bayram is Context, ERC20, Ownable {
                 ICO_OPTIONS[option].maxMint,
             "Maximum ICO supply per account exceeded"
         );
-        MovieFoley mf = MovieFoley(movy);
-        mf.transferFrom(
+        IERC20(movy).transferFrom(
             _sender,
             owner(),
             (amount * ICO_OPTIONS[option].price) / 10000

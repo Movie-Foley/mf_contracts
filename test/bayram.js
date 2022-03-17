@@ -1,13 +1,17 @@
-const Bayram = artifacts.require("Bayram");
+const BUSD = artifacts.require("BUSD");
 const MovieFoley = artifacts.require("MovieFoley");
+const Bayram = artifacts.require("Bayram");
+
 const expectThrow = require("./helpers/expectThrow");
 
 
 contract("Bayram", function ([contractDeployer, another]) {
+  let BSD;
   let MF;
   let BA;
   before(async () => {
-    MF = await MovieFoley.new({ from: contractDeployer });
+    BSD = await BUSD.new({ from: contractDeployer });
+    MF = await MovieFoley.new(BSD.address, { from: contractDeployer });
     BA = await Bayram.new(MF.address, { from: contractDeployer });
   });
 
