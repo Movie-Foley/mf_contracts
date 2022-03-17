@@ -87,6 +87,12 @@ contract("Bayram", function ([contractDeployer, another]) {
     totalHolders = await BA.totalICOHolder(1);
     assert.equal(2, totalHolders);
 
+    totalMintedICO = await BA.totalMintedICO(1);
+    assert.equal(700000, totalMintedICO);
+
+    totalSupply = await BA.totalSupply();
+    assert.equal(10700000, totalSupply);
+
     await expectThrow(BA.buy(300000, 1, { from: another }), "Maximum ICO supply per account exceeded");
     await expectThrow(BA.buy(450000, 1, { from: contractDeployer }), "Maximum ICO supply exceeded");
 
@@ -110,6 +116,9 @@ contract("Bayram", function ([contractDeployer, another]) {
     assert.equal(buyResult.logs[2].args.amount, 200000, "Amount should be 20.");
     assert.equal(buyResult.logs[2].args.option, 2, "Option should be 2.");
 
+    let totalSupply = await BA.totalSupply();
+    assert.equal(10700000, totalSupply);
+
     let totalMintedICO = await BA.totalMintedICO(2);
     assert.equal(200000, totalMintedICO);
 
@@ -130,6 +139,8 @@ contract("Bayram", function ([contractDeployer, another]) {
     await expectThrow(BA.unlockICOBalances(1, { from: contractDeployer }), "ICO option is not valid.");
 
     await BA.unlockICOBalances(2, { from: contractDeployer });
+    let totalSupply = await BA.totalSupply();
+    assert.equal(10900000, totalSupply);
     let anotherBABalanceOfLocked = await BA.balanceOfLocked(another, 2);
     assert.equal(0, anotherBABalanceOfLocked);
     let anotherBABalance = await BA.balanceOf(another);
@@ -138,6 +149,8 @@ contract("Bayram", function ([contractDeployer, another]) {
     await BA.transfer(contractDeployer, 700000, { from: another });
     anotherBABalance = await BA.balanceOf(another);
     assert.equal(100000, anotherBABalance);
+    let deployerBABalance = await BA.balanceOf(contractDeployer);
+    assert.equal(10800000, deployerBABalance);
 
     await expectThrow(BA.unlockICOBalances(2, { from: contractDeployer }), "ICO amounts have been already unlocked!");
   });
