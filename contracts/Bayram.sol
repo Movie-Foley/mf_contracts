@@ -22,25 +22,37 @@ contract Bayram is Context, ERC20, Ownable {
         uint256 limit;
         uint256 price;
         bool isLocked;
+        bool isAmountUnlocked;
         uint256 totalMinted;
     }
     mapping(uint8 => ICOOption) private ICO_OPTIONS;
-    mapping(uint8 => mapping(address => uint256)) private MINTED_ICOS;
+    mapping(uint8 => uint256) private ICO_TOTAL_HOLDERS;
+    mapping(uint8 => mapping(address => uint256)) private ICO_MINTEDS;
+    mapping(uint8 => mapping(uint256 => address)) private ICO_HOLDERS;
     bool private isICOActive = true;
     uint8 public constant ICO_OPTION_COUNT = 2;
 
     event Burned(address addr, uint256 amount);
     event Minted(address addr, uint256 amount, uint8 option);
 
+    modifier isICOOptionValid(uint8 option) {
+        require(
+            1 <= option && option <= ICO_OPTION_COUNT,
+            "ICO option is not valid."
+        );
+        _;
+    }
+
     constructor(address _movy) ERC20(_name, _symbol) {
         movy = _movy;
         mintForTreasure(_treasure);
         ICO_OPTIONS[1] = ICOOption({
-            minMint: 300000, // 30
+            minMint: 100000, // 30
             maxMint: 600000, // 60
             limit: 1000000, // 100
             price: 5000, // 0.5 MOVY
             isLocked: false,
+            isAmountUnlocked: true,
             totalMinted: 0
         });
         ICO_OPTIONS[2] = ICOOption({
@@ -49,6 +61,7 @@ contract Bayram is Context, ERC20, Ownable {
             limit: 500000, // 50
             price: 2500, // 0.25 MOVY
             isLocked: true,
+            isAmountUnlocked: false,
             totalMinted: 0
         });
     }
@@ -70,8 +83,8 @@ contract Bayram is Context, ERC20, Ownable {
     function balanceOf(address account) public view override returns (uint256) {
         uint256 balance = super.balanceOf(account);
         for (uint8 i = 1; i <= ICO_OPTION_COUNT; i++) {
-            if (ICO_OPTIONS[i].isLocked) {
-                balance += MINTED_ICOS[i][account];
+            if (ICO_OPTIONS[i].isLocked && !ICO_OPTIONS[i].isAmountUnlocked) {
+                balance += ICO_MINTEDS[i][account];
             }
         }
         return balance;
@@ -86,14 +99,46 @@ contract Bayram is Context, ERC20, Ownable {
             1 <= option && option <= ICO_OPTION_COUNT,
             "ICO option is not valid."
         );
-        return MINTED_ICOS[option][account];
+        if (ICO_OPTIONS[option].isAmountUnlocked) {
+            return 0;
+        }
+        return ICO_MINTEDS[option][account];
     }
 
-    function totalMintedICO(uint8 option) public view returns (uint256) {
+    function unlockICOBalances(uint8 option)
+        public
+        onlyOwner
+        isICOOptionValid(option)
+    {
+        require(ICO_OPTIONS[option].isLocked, "ICO option is not valid.");
         require(
-            1 <= option && option <= ICO_OPTION_COUNT,
-            "ICO option is not valid."
+            !ICO_OPTIONS[option].isAmountUnlocked,
+            "ICO amounts have been already unlocked!"
         );
+        for (uint256 i = 0; i < ICO_TOTAL_HOLDERS[option]; i++) {
+            _mint(
+                ICO_HOLDERS[option][i],
+                ICO_MINTEDS[option][ICO_HOLDERS[option][i]]
+            );
+        }
+        ICO_OPTIONS[option].isAmountUnlocked = true;
+    }
+
+    function totalICOHolder(uint8 option)
+        public
+        view
+        isICOOptionValid(option)
+        returns (uint256)
+    {
+        return ICO_TOTAL_HOLDERS[option];
+    }
+
+    function totalMintedICO(uint8 option)
+        public
+        view
+        isICOOptionValid(option)
+        returns (uint256)
+    {
         return ICO_OPTIONS[option].totalMinted;
     }
 
@@ -101,12 +146,11 @@ contract Bayram is Context, ERC20, Ownable {
         isICOActive = _sale;
     }
 
-    function buy(uint256 amount, uint8 option) external {
+    function buy(uint256 amount, uint8 option)
+        external
+        isICOOptionValid(option)
+    {
         address _sender = _msgSender();
-        require(
-            1 <= option && option <= ICO_OPTION_COUNT,
-            "ICO option is not valid."
-        );
         require(isICOActive, "ICO is over");
         require(
             ICO_OPTIONS[option].minMint <= amount,
@@ -122,7 +166,7 @@ contract Bayram is Context, ERC20, Ownable {
             "Maximum ICO supply exceeded"
         );
         require(
-            MINTED_ICOS[option][_sender] + amount <=
+            ICO_MINTEDS[option][_sender] + amount <=
                 ICO_OPTIONS[option].maxMint,
             "Maximum ICO supply per account exceeded"
         );
@@ -136,7 +180,11 @@ contract Bayram is Context, ERC20, Ownable {
             _mint(_sender, amount);
         }
         ICO_OPTIONS[option].totalMinted += amount;
-        MINTED_ICOS[option][_sender] += amount;
+        if (ICO_MINTEDS[option][_sender] == 0) {
+            ICO_HOLDERS[option][ICO_TOTAL_HOLDERS[option]] = _sender;
+            ICO_TOTAL_HOLDERS[option]++;
+        }
+        ICO_MINTEDS[option][_sender] += amount;
         emit Minted(_sender, amount, option);
     }
 }

@@ -23,12 +23,20 @@ contract MovieFoley is Context, ERC20, Ownable, Pausable {
         uint256 totalMinted;
     }
     mapping(uint8 => ICOOption) private ICO_OPTIONS;
-    mapping(uint8 => mapping(address => uint256)) private MINTED_ICOS;
+    mapping(uint8 => mapping(address => uint256)) private ICO_MINTEDS;
     bool private isICOActive = true;
     uint8 public constant ICO_OPTION_COUNT = 4;
 
     event Burned(address addr, uint256 amount);
     event Minted(address addr, uint256 amount, uint8 option);
+
+    modifier isICOOptionValid(uint8 option) {
+        require(
+            1 <= option && option <= ICO_OPTION_COUNT,
+            "ICO option is not valid."
+        );
+        _;
+    }
 
     constructor() ERC20(_name, _symbol) {
         // busd = _busd;
@@ -115,11 +123,12 @@ contract MovieFoley is Context, ERC20, Ownable, Pausable {
         return super.transferFrom(from, to, amount);
     }
 
-    function totalMintedICO(uint8 option) public view returns (uint256) {
-        require(
-            1 <= option && option <= ICO_OPTION_COUNT,
-            "ICO option is not valid."
-        );
+    function totalMintedICO(uint8 option)
+        public
+        view
+        isICOOptionValid(option)
+        returns (uint256)
+    {
         return ICO_OPTIONS[option].totalMinted;
     }
 
@@ -127,12 +136,11 @@ contract MovieFoley is Context, ERC20, Ownable, Pausable {
         isICOActive = _sale;
     }
 
-    function buy(uint256 amount, uint8 option) external {
+    function buy(uint256 amount, uint8 option)
+        external
+        isICOOptionValid(option)
+    {
         address _sender = _msgSender();
-        require(
-            1 <= option && option <= ICO_OPTION_COUNT,
-            "ICO option is not valid."
-        );
         require(isICOActive, "ICO is over");
         require(
             ICO_OPTIONS[option].minMint <= amount,
@@ -144,7 +152,7 @@ contract MovieFoley is Context, ERC20, Ownable, Pausable {
             "Maximum ICO supply exceeded"
         );
         require(
-            MINTED_ICOS[option][_sender] + amount <=
+            ICO_MINTEDS[option][_sender] + amount <=
                 ICO_OPTIONS[option].maxMint,
             "Maximum ICO supply per account exceeded"
         );
@@ -157,7 +165,7 @@ contract MovieFoley is Context, ERC20, Ownable, Pausable {
         // TODO: check is locked
         _mint(_sender, amount);
         ICO_OPTIONS[option].totalMinted += amount;
-        MINTED_ICOS[option][_sender] += amount;
+        ICO_MINTEDS[option][_sender] += amount;
         emit Minted(_sender, amount, option);
     }
 }

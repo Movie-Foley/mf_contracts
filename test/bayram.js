@@ -80,6 +80,13 @@ contract("Bayram", function ([contractDeployer, another]) {
     let totalMintedICO = await BA.totalMintedICO(1);
     assert.equal(600000, totalMintedICO);
 
+    let totalHolders = await BA.totalICOHolder(1);
+    assert.equal(1, totalHolders);
+
+    await BA.buy(100000, 1, { from: contractDeployer });
+    totalHolders = await BA.totalICOHolder(1);
+    assert.equal(2, totalHolders);
+
     await expectThrow(BA.buy(300000, 1, { from: another }), "Maximum ICO supply per account exceeded");
     await expectThrow(BA.buy(450000, 1, { from: contractDeployer }), "Maximum ICO supply exceeded");
 
@@ -106,12 +113,32 @@ contract("Bayram", function ([contractDeployer, another]) {
     let totalMintedICO = await BA.totalMintedICO(2);
     assert.equal(200000, totalMintedICO);
 
+    let totalHolders = await BA.totalICOHolder(2);
+    assert.equal(1, totalHolders);
+
     let anotherBABalanceOfLocked = await BA.balanceOfLocked(another, 2);
-    assert.equal(200000, anotherBABalanceOfLocked)
+    assert.equal(200000, anotherBABalanceOfLocked);
     let anotherBABalance = await BA.balanceOf(another);
     assert.equal(800000, anotherBABalance);
     await expectThrow(BA.transfer(contractDeployer, 700000, { from: another }), "ERC20: transfer amount exceeds balance");
     let anotherMFBalance = await MF.balanceOf(another);
     assert.equal(9650000, anotherMFBalance);
+  });
+
+  it("should unlock option 2", async () => {
+    await expectThrow(BA.unlockICOBalances(2, { from: another }), "Ownable: caller is not the owner");
+    await expectThrow(BA.unlockICOBalances(1, { from: contractDeployer }), "ICO option is not valid.");
+
+    await BA.unlockICOBalances(2, { from: contractDeployer });
+    let anotherBABalanceOfLocked = await BA.balanceOfLocked(another, 2);
+    assert.equal(0, anotherBABalanceOfLocked);
+    let anotherBABalance = await BA.balanceOf(another);
+    assert.equal(800000, anotherBABalance);
+
+    await BA.transfer(contractDeployer, 700000, { from: another });
+    anotherBABalance = await BA.balanceOf(another);
+    assert.equal(100000, anotherBABalance);
+
+    await expectThrow(BA.unlockICOBalances(2, { from: contractDeployer }), "ICO amounts have been already unlocked!");
   });
 });
