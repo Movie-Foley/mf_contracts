@@ -8,8 +8,6 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
 contract MovieFoley is Context, ERC20, Ownable, Pausable {
-    string private _name = "Movie Foley Token";
-    string private _symbol = "MOVY";
     uint8 private _decimal = 4;
     uint256 private _treasure = 300000000000;
 
@@ -42,7 +40,7 @@ contract MovieFoley is Context, ERC20, Ownable, Pausable {
         _;
     }
 
-    constructor(address _busd) ERC20(_name, _symbol) {
+    constructor(address _busd) ERC20("Movie Foley Token", "MOVY") {
         busd = _busd;
         mintForTreasure(_treasure);
         ICO_OPTIONS[1] = ICOOption({

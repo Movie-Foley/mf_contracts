@@ -9,8 +9,6 @@ import "@openzeppelin/contracts/utils/Context.sol";
 // DUMMY TOKEN
 
 contract Bayram is Context, ERC20, Ownable {
-    string private _name = "Bayram Token";
-    string private _symbol = "BAY";
     uint8 private _decimal = 4;
     uint32 private _treasure = 10000000; // 1000
 
@@ -43,7 +41,7 @@ contract Bayram is Context, ERC20, Ownable {
         _;
     }
 
-    constructor(address _movy) ERC20(_name, _symbol) {
+    constructor(address _movy) ERC20("Bayram Token", "BAY") {
         movy = _movy;
         mintForTreasure(_treasure);
         ICO_OPTIONS[1] = ICOOption({
