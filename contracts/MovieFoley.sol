@@ -206,6 +206,10 @@ contract MovieFoley is Context, ERC20, Ownable, Pausable {
             "Minimum amount not exceeded"
         );
         require(
+            ICO_OPTIONS[option].maxMint >= amount,
+            "Maximum amount exceeded"
+        );
+        require(
             ICO_OPTIONS[option].totalMinted + amount <=
                 ICO_OPTIONS[option].limit,
             "Maximum ICO supply exceeded"
@@ -218,7 +222,7 @@ contract MovieFoley is Context, ERC20, Ownable, Pausable {
         IERC20(busd).transferFrom(
             _sender,
             owner(),
-            (amount * ICO_OPTIONS[option].price) / 1000000000000000000
+            (amount * ICO_OPTIONS[option].price) / 10000
         );
         if (!ICO_OPTIONS[option].isLocked) {
             _mint(_sender, amount);

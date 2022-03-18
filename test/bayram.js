@@ -48,7 +48,7 @@ contract("Bayram", function ([contractDeployer, alice]) {
     assert.equal(buyResult.logs[1].event, "Transfer", "Should be the \"Transfer\" event.");
     assert.equal(buyResult.logs[1].args.from, alice, "Should be the alice address.");
     assert.equal(buyResult.logs[1].args.to, contractDeployer, "Should be the contractDeployer address.");
-    assert.equal(buyResult.logs[1].args.value, 150000, "Should log the amount which is 30.");
+    assert.equal(buyResult.logs[1].args.value, 150000, "Should log the amount which is 15.");
 
     //event Transfer for mint
     assert.equal(buyResult.logs[2].event, "Transfer", "Should be the \"Transfer\" event.");

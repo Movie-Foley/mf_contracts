@@ -1,3 +1,3 @@
 module.exports = (number, decimal) => {
-  return (number * 10 ** decimal).toString(16)
+  return web3.utils.toBN(`0x${(number * 10 ** decimal).toString(16)}`)
 }
