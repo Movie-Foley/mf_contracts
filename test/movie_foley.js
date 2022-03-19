@@ -12,6 +12,7 @@ contract("MovieFoley", function ([contractDeployer, alice, bob]) {
     MF = await MovieFoley.new(BSD.address, { from: contractDeployer });
     await BSD.transfer(alice, decToHex(1000, 18), { from: contractDeployer });
     await BSD.transfer(bob, decToHex(1000, 18), { from: contractDeployer });
+    await BSD.approve(MF.address, decToHex(10000, 18), { from: contractDeployer });
     await BSD.approve(MF.address, decToHex(1000, 18), { from: alice });
     await BSD.approve(MF.address, decToHex(1000, 18), { from: bob });
 
@@ -170,25 +171,25 @@ contract("MovieFoley", function ([contractDeployer, alice, bob]) {
     await expectThrow(MF.buy(decToHex(1, 4), 1, { from: alice }), "Minimum amount not exceeded");
     await expectThrow(MF.buy(decToHex(10000000, 4), 1, { from: alice }), "Maximum amount exceeded");
 
-    let buyResult = await MF.buy(decToHex(30, 4), 1, { from: alice });
+    let buyResult = await MF.buy(decToHex(50, 4), 1, { from: alice });
 
     //event Transfer
     assert.equal(buyResult.logs[1].event, "Transfer", "Should be the \"Transfer\" event.");
     assert.equal(buyResult.logs[1].args.from, alice, "Should be the alice address.");
     assert.equal(buyResult.logs[1].args.to, contractDeployer, "Should be the contractDeployer address.");
-    assert.equal(buyResult.logs[1].args.value.toString(), decToHex(6, 18), "Should log the amount which is 6.");
+    assert.equal(buyResult.logs[1].args.value.toString(), decToHex(10, 18), "Should log the amount which is 10.");
     //event Minted
     assert.equal(buyResult.logs[2].event, "Minted", "Should be the \"Minted\" event.");
     assert.equal(buyResult.logs[2].args.addr, alice, "Should be alice address.");
-    assert.equal(buyResult.logs[2].args.amount.toString(), decToHex(30, 4), "Amount should be 30.");
+    assert.equal(buyResult.logs[2].args.amount.toString(), decToHex(50, 4), "Amount should be 50.");
     assert.equal(buyResult.logs[2].args.option, 1, "Option should be 1.");
 
     let aliceBUSDBalance = await BSD.balanceOf(alice);
-    assert.equal(decToHex(994, 18), aliceBUSDBalance.toString());
+    assert.equal(decToHex(990, 18), aliceBUSDBalance.toString());
     let totalSupply = await MF.totalSupply();
     assert.equal(decToHex(30000000, 4), totalSupply.toString());
     let aliceMFBalance = await MF.balanceOf(alice);
-    assert.equal(decToHex(330, 4), aliceMFBalance.toString());
+    assert.equal(decToHex(350, 4), aliceMFBalance.toString());
 
     buyResult = await MF.buy(decToHex(60, 4), 1, { from: bob });
     bobBUSDBalance = await BSD.balanceOf(bob);
@@ -199,7 +200,7 @@ contract("MovieFoley", function ([contractDeployer, alice, bob]) {
     assert.equal(decToHex(30000000, 4), totalSupply.toString());
 
     let totalMintedICO = await MF.totalMintedICO(1);
-    assert.equal(decToHex(90, 4), totalMintedICO.toString());
+    assert.equal(decToHex(110, 4), totalMintedICO.toString());
 
     let totalHolders = await MF.totalICOHolder(1);
     assert.equal(2, totalHolders);
@@ -208,8 +209,69 @@ contract("MovieFoley", function ([contractDeployer, alice, bob]) {
     totalHolders = await MF.totalICOHolder(1);
     assert.equal(2, totalHolders);
 
+    await expectThrow(MF.transfer(contractDeployer, decToHex(10, 4), { from: bob }), "ERC20: transfer amount exceeds balance");
+
+    await MF.buy(decToHex(25000, 4), 1, { from: contractDeployer });
+    await expectThrow(MF.buy(decToHex(30, 4), 1, { from: contractDeployer }), "Maximum ICO supply per account exceeded");
+
     await MF.setICO(false, { from: contractDeployer });
     await expectThrow(MF.buy(450000, 1, { from: alice }), "ICO is over");
     await MF.setICO(true, { from: contractDeployer });
+
+    // deployer: 25000 MF option 1, 98000 BUSD
+    // alice: 350 MF option 1, 990 BUSD
+    // bob: 60 MF option 1, 988 BUSD
   });
+
+  // it("should buy option 2", async () => {
+  //   await expectThrow(MF.buy(decToHex(1, 4), 2, { from: alice }), "Minimum amount not exceeded");
+  //   await expectThrow(MF.buy(decToHex(10000000, 4), 2, { from: alice }), "Maximum amount exceeded");
+
+  //   let buyResult = await MF.buy(decToHex(30, 4), 1, { from: alice });
+
+  //   //event Transfer
+  //   assert.equal(buyResult.logs[1].event, "Transfer", "Should be the \"Transfer\" event.");
+  //   assert.equal(buyResult.logs[1].args.from, alice, "Should be the alice address.");
+  //   assert.equal(buyResult.logs[1].args.to, contractDeployer, "Should be the contractDeployer address.");
+  //   assert.equal(buyResult.logs[1].args.value.toString(), decToHex(6, 18), "Should log the amount which is 6.");
+  //   //event Minted
+  //   assert.equal(buyResult.logs[2].event, "Minted", "Should be the \"Minted\" event.");
+  //   assert.equal(buyResult.logs[2].args.addr, alice, "Should be alice address.");
+  //   assert.equal(buyResult.logs[2].args.amount.toString(), decToHex(30, 4), "Amount should be 30.");
+  //   assert.equal(buyResult.logs[2].args.option, 1, "Option should be 1.");
+
+  //   let aliceBUSDBalance = await BSD.balanceOf(alice);
+  //   assert.equal(decToHex(994, 18), aliceBUSDBalance.toString());
+  //   let totalSupply = await MF.totalSupply();
+  //   assert.equal(decToHex(30000000, 4), totalSupply.toString());
+  //   let aliceMFBalance = await MF.balanceOf(alice);
+  //   assert.equal(decToHex(330, 4), aliceMFBalance.toString());
+
+  //   buyResult = await MF.buy(decToHex(60, 4), 1, { from: bob });
+  //   bobBUSDBalance = await BSD.balanceOf(bob);
+  //   assert.equal(decToHex(988, 18), bobBUSDBalance.toString());
+  //   bobMFBalance = await MF.balanceOf(bob);
+  //   assert.equal(decToHex(60, 4), bobMFBalance.toString());
+  //   totalSupply = await MF.totalSupply();
+  //   assert.equal(decToHex(30000000, 4), totalSupply.toString());
+
+  //   let totalMintedICO = await MF.totalMintedICO(1);
+  //   assert.equal(decToHex(90, 4), totalMintedICO.toString());
+
+  //   let totalHolders = await MF.totalICOHolder(1);
+  //   assert.equal(2, totalHolders);
+
+  //   await MF.buy(decToHex(30, 4), 1, { from: alice });
+  //   totalHolders = await MF.totalICOHolder(1);
+  //   assert.equal(2, totalHolders);
+
+  //   await expectThrow(MF.transfer(contractDeployer, decToHex(10, 4), { from: bob }), "ERC20: transfer amount exceeds balance");
+
+  //   await MF.setICO(false, { from: contractDeployer });
+  //   await expectThrow(MF.buy(450000, 1, { from: alice }), "ICO is over");
+  //   await MF.setICO(true, { from: contractDeployer });
+
+  //   // alice: 330 MF option 1, 994 BUSD
+  //   // bob: 60 MF option 1, 988 BUSD
+  // });
 });
