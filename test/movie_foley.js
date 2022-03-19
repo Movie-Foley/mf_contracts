@@ -382,8 +382,31 @@ contract("MovieFoley", function ([contractDeployer, alice, bob]) {
     bobMFBalance = await MF.balanceOf(bob);
     assert.equal(decToHex(190, 4), bobMFBalance.toString());
 
+    await expectThrow(MF.transfer(contractDeployer, decToHex(31, 4), { from: bob }), "ERC20: transfer amount exceeds balance");
+
     // deployer: 25000 MF option 1, 98000 BUSD
     // alice: 80 MF option 1, 40 MF option 2, 20 MF option 3, 30 MF option 4, 936 BUSD
     // bob: 60 MF option 1, 60 MF option 2, 40 MF option 3, 30 MF option 4, 900 BUSD
+  });
+
+  it("should unlock the option 3", async () => {
+    await expectThrow(MF.unlockICOBalances(3, { from: alice }), "Ownable: caller is not the owner");
+    await expectThrow(MF.unlockICOBalances(4, { from: contractDeployer }), "ICO option is not valid.");
+
+    await MF.unlockICOBalances(3, { from: contractDeployer });
+    let totalSupply = await MF.totalSupply();
+    assert.equal(decToHex(30000120, 4), totalSupply.toString());
+    let aliceMFBalanceOfLocked = await MF.balanceOfLocked(alice, 4);
+    assert.equal(0, aliceMFBalanceOfLocked);
+    let aliceMFBalance = await MF.balanceOf(alice);
+    assert.equal(decToHex(470, 4), aliceMFBalance.toString());
+
+    await MF.transfer(alice, decToHex(40, 4), { from: bob });
+    aliceMFBalance = await MF.balanceOf(alice);
+    assert.equal(decToHex(510, 4), aliceMFBalance.toString());
+    let bobMFBalance = await MF.balanceOf(bob);
+    assert.equal(decToHex(150, 4), bobMFBalance.toString());
+
+    await expectThrow(MF.unlockICOBalances(3, { from: contractDeployer }), "ICO amounts have been already unlocked!");
   });
 });
