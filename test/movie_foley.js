@@ -16,6 +16,9 @@ contract("MovieFoley", function ([contractDeployer, alice, bob]) {
     await BSD.approve(MF.address, decToHex(1000, 18), { from: alice });
     await BSD.approve(MF.address, decToHex(1000, 18), { from: bob });
 
+    let totalOptionCount = await MF.ICO_OPTION_COUNT();
+    console.log("Option Count: " + totalOptionCount);
+
     console.log("DEPLOYER: " + contractDeployer);
     console.log("alice: " + alice);
     console.log("bob: " + bob);

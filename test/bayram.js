@@ -25,7 +25,7 @@ contract("Bayram", function ([contractDeployer, alice]) {
     let decimal = await BA.decimals.call();
     assert.equal(4, decimal);
 
-    let movyAdress = await BA.movy();
+    let movyAdress = await BA.paymentToken();
     assert.equal(MF.address, movyAdress);
 
 
