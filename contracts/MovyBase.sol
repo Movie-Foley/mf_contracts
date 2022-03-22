@@ -183,10 +183,13 @@ abstract contract MovyBase is Context, ERC20, Ownable, Pausable {
                 ICO_OPTIONS[option].maxMint,
             "Maximum ICO supply per account exceeded"
         );
-        IERC20(paymentToken).transferFrom(
-            _sender,
-            owner(),
-            (amount * ICO_OPTIONS[option].price) / 10000
+        require(
+            IERC20(paymentToken).transferFrom(
+                _sender,
+                owner(),
+                (amount * ICO_OPTIONS[option].price) / 10000
+            ),
+            "Payment could not be made!"
         );
         if (!ICO_OPTIONS[option].isLocked) {
             _mint(_sender, amount);
