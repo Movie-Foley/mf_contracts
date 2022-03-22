@@ -6,15 +6,8 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-abstract contract MovyBase is
-    Context,
-    ERC20,
-    Ownable,
-    Pausable,
-    ReentrancyGuard
-{
+abstract contract MovyBase is Context, ERC20, Ownable, Pausable {
     address public paymentToken;
 
     struct ICOOption {
@@ -168,7 +161,6 @@ abstract contract MovyBase is
 
     function buy(uint256 amount, uint8 option)
         external
-        nonReentrant
         isICOOptionValid(option)
     {
         address _sender = _msgSender();
