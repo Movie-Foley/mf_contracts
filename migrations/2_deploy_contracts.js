@@ -4,7 +4,7 @@ var Bayram = artifacts.require('./Bayram.sol');
 
 module.exports = async (deployer, network) => {
   let busdAddress;
-  if (network == "development") {
+  if (network == "development" || network == "bsctestnet") {
     await deployer.deploy(BUSD);
     busdAddress = BUSD.address;
   }
