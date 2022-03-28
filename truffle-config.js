@@ -92,7 +92,12 @@ module.exports = {
   mocha: {
     // timeout: 100000
   },
-
+  api_keys: {
+    bscscan: "WV52U6VPI8A1RME98ASI461DH2XX3S2JZ1"
+  },
+  plugins: [
+    "truffle-plugin-verify"
+  ],
   // Configure your compilers
   compilers: {
     solc: {

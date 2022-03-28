@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 // DUMMY BUSD FOR TRUFFLE TESTS
 
 contract BUSD is ERC20, Ownable {
-    constructor() ERC20("BUSD", "BUSD") {
+    constructor(string memory name) ERC20(name, name) {
         _mint(msg.sender, 100000 * 10**uint256(decimals()));
     }
 
