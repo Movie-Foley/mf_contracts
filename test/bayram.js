@@ -125,8 +125,8 @@ contract("Bayram", function ([contractDeployer, alice]) {
     let totalHolders = await BA.totalICOHolder(2);
     assert.equal(1, totalHolders);
 
-    let anotherBABalanceOfLocked = await BA.balanceOfLocked(alice, 2);
-    assert.equal(200000, anotherBABalanceOfLocked);
+    let anotherBABalanceOfMintedOption = await BA.balanceOfMintedOption(alice, 2);
+    assert.equal(200000, anotherBABalanceOfMintedOption);
     let anotherBABalance = await BA.balanceOf(alice);
     assert.equal(800000, anotherBABalance);
     await expectThrow(BA.transfer(contractDeployer, 700000, { from: alice }), "ERC20: transfer amount exceeds balance");
@@ -141,8 +141,8 @@ contract("Bayram", function ([contractDeployer, alice]) {
     await BA.unlockICOBalances(2, { from: contractDeployer });
     let totalSupply = await BA.totalSupply();
     assert.equal(10900000, totalSupply);
-    let anotherBABalanceOfLocked = await BA.balanceOfLocked(alice, 2);
-    assert.equal(0, anotherBABalanceOfLocked);
+    let anotherBABalanceOfMintedOption = await BA.balanceOfMintedOption(alice, 2);
+    assert.equal(200000, anotherBABalanceOfMintedOption);
     let anotherBABalance = await BA.balanceOf(alice);
     assert.equal(800000, anotherBABalance);
 

@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.12;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
+import "./zeppelin/ERC20.sol";
+import "./zeppelin/Ownable.sol";
+import "./zeppelin/Pausable.sol";
 
-abstract contract MovyBase is Context, ERC20, Ownable, Pausable {
+abstract contract MovyBase is ERC20, Ownable, Pausable {
     address public paymentToken;
 
     struct ICOOption {
@@ -103,7 +101,7 @@ abstract contract MovyBase is Context, ERC20, Ownable, Pausable {
         return balance;
     }
 
-    function balanceOfLocked(address account, uint8 option)
+    function balanceOfMintedOption(address account, uint8 option)
         public
         view
         returns (uint256)
@@ -112,9 +110,6 @@ abstract contract MovyBase is Context, ERC20, Ownable, Pausable {
             1 <= option && option <= ICO_OPTION_COUNT,
             "ICO option is not valid."
         );
-        if (ICO_OPTIONS[option].isAmountUnlocked) {
-            return 0;
-        }
         return ICO_MINTEDS[option][account];
     }
 
@@ -162,8 +157,8 @@ abstract contract MovyBase is Context, ERC20, Ownable, Pausable {
     function buy(uint256 amount, uint8 option)
         external
         isICOOptionValid(option)
+        whenNotPaused
     {
-        address _sender = _msgSender();
         require(isICOActive, "ICO is over");
         require(
             ICO_OPTIONS[option].minMint <= amount,
@@ -179,27 +174,27 @@ abstract contract MovyBase is Context, ERC20, Ownable, Pausable {
             "Maximum ICO supply exceeded"
         );
         require(
-            ICO_MINTEDS[option][_sender] + amount <=
+            ICO_MINTEDS[option][msg.sender] + amount <=
                 ICO_OPTIONS[option].maxMint,
             "Maximum ICO supply per account exceeded"
         );
         require(
-            IERC20(paymentToken).transferFrom(
-                _sender,
+            ERC20(paymentToken).transferFrom(
+                msg.sender,
                 owner(),
                 (amount * ICO_OPTIONS[option].price) / 10000
             ),
             "Payment could not be made!"
         );
         if (!ICO_OPTIONS[option].isLocked) {
-            _mint(_sender, amount);
+            _mint(msg.sender, amount);
         }
         ICO_OPTIONS[option].totalMinted += amount;
-        if (ICO_MINTEDS[option][_sender] == 0) {
-            ICO_HOLDERS[option][ICO_TOTAL_HOLDERS[option]] = _sender;
+        if (ICO_MINTEDS[option][msg.sender] == 0) {
+            ICO_HOLDERS[option][ICO_TOTAL_HOLDERS[option]] = msg.sender;
             ICO_TOTAL_HOLDERS[option]++;
         }
-        ICO_MINTEDS[option][_sender] += amount;
-        emit Minted(_sender, amount, option);
+        ICO_MINTEDS[option][msg.sender] += amount;
+        emit Minted(msg.sender, amount, option);
     }
 }

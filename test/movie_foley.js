@@ -212,10 +212,10 @@ contract("MovieFoley", function ([contractDeployer, alice, bob]) {
     totalHolders = await MF.totalICOHolder(1);
     assert.equal(2, totalHolders);
 
-    let aliceMFBalanceOfLocked = await MF.balanceOfLocked(alice, 1);
-    assert.equal(decToHex(80, 4), aliceMFBalanceOfLocked.toString());
-    let bobMFBalanceOfLocked = await MF.balanceOfLocked(bob, 1);
-    assert.equal(decToHex(60, 4), bobMFBalanceOfLocked.toString());
+    let aliceMFBalanceOfMintedOption = await MF.balanceOfMintedOption(alice, 1);
+    assert.equal(decToHex(80, 4), aliceMFBalanceOfMintedOption.toString());
+    let bobMFBalanceOfMintedOption = await MF.balanceOfMintedOption(bob, 1);
+    assert.equal(decToHex(60, 4), bobMFBalanceOfMintedOption.toString());
 
     await expectThrow(MF.transfer(contractDeployer, decToHex(10, 4), { from: bob }), "ERC20: transfer amount exceeds balance");
 
@@ -263,10 +263,10 @@ contract("MovieFoley", function ([contractDeployer, alice, bob]) {
     totalSupply = await MF.totalSupply();
     assert.equal(decToHex(30000000, 4), totalSupply.toString());
 
-    let aliceMFBalanceOfLocked = await MF.balanceOfLocked(alice, 2);
-    assert.equal(decToHex(40, 4), aliceMFBalanceOfLocked.toString());
-    let bobMFBalanceOfLocked = await MF.balanceOfLocked(bob, 2);
-    assert.equal(decToHex(60, 4), bobMFBalanceOfLocked.toString());
+    let aliceMFBalanceOfMintedOption = await MF.balanceOfMintedOption(alice, 2);
+    assert.equal(decToHex(40, 4), aliceMFBalanceOfMintedOption.toString());
+    let bobMFBalanceOfMintedOption = await MF.balanceOfMintedOption(bob, 2);
+    assert.equal(decToHex(60, 4), bobMFBalanceOfMintedOption.toString());
 
     let totalMintedICO = await MF.totalMintedICO(2);
     assert.equal(decToHex(100, 4), totalMintedICO.toString());
@@ -313,10 +313,10 @@ contract("MovieFoley", function ([contractDeployer, alice, bob]) {
     totalSupply = await MF.totalSupply();
     assert.equal(decToHex(30000000, 4), totalSupply.toString());
 
-    let aliceMFBalanceOfLocked = await MF.balanceOfLocked(alice, 3);
-    assert.equal(decToHex(20, 4), aliceMFBalanceOfLocked.toString());
-    let bobMFBalanceOfLocked = await MF.balanceOfLocked(bob, 3);
-    assert.equal(decToHex(40, 4), bobMFBalanceOfLocked.toString());
+    let aliceMFBalanceOfMintedOption = await MF.balanceOfMintedOption(alice, 3);
+    assert.equal(decToHex(20, 4), aliceMFBalanceOfMintedOption.toString());
+    let bobMFBalanceOfMintedOption = await MF.balanceOfMintedOption(bob, 3);
+    assert.equal(decToHex(40, 4), bobMFBalanceOfMintedOption.toString());
 
     let totalMintedICO = await MF.totalMintedICO(3);
     assert.equal(decToHex(60, 4), totalMintedICO.toString());
@@ -368,10 +368,10 @@ contract("MovieFoley", function ([contractDeployer, alice, bob]) {
     totalSupply = await MF.totalSupply();
     assert.equal(decToHex(30000060, 4), totalSupply.toString());
 
-    let aliceMFBalanceOfLocked = await MF.balanceOfLocked(alice, 4);
-    assert.equal(decToHex(0, 4), aliceMFBalanceOfLocked.toString());
-    let bobMFBalanceOfLocked = await MF.balanceOfLocked(bob, 4);
-    assert.equal(decToHex(0, 4), bobMFBalanceOfLocked.toString());
+    let aliceMFBalanceOfMintedOption = await MF.balanceOfMintedOption(alice, 4);
+    assert.equal(decToHex(20, 4), aliceMFBalanceOfMintedOption.toString());
+    let bobMFBalanceOfMintedOption = await MF.balanceOfMintedOption(bob, 4);
+    assert.equal(decToHex(40, 4), bobMFBalanceOfMintedOption.toString());
 
     let totalMintedICO = await MF.totalMintedICO(4);
     assert.equal(decToHex(60, 4), totalMintedICO.toString());
@@ -399,8 +399,8 @@ contract("MovieFoley", function ([contractDeployer, alice, bob]) {
     await MF.unlockICOBalances(3, { from: contractDeployer });
     let totalSupply = await MF.totalSupply();
     assert.equal(decToHex(30000120, 4), totalSupply.toString());
-    let aliceMFBalanceOfLocked = await MF.balanceOfLocked(alice, 4);
-    assert.equal(0, aliceMFBalanceOfLocked);
+    let aliceMFBalanceOfMintedOption = await MF.balanceOfMintedOption(alice, 4);
+    assert.equal(decToHex(20, 4), aliceMFBalanceOfMintedOption.toString());
     let aliceMFBalance = await MF.balanceOf(alice);
     assert.equal(decToHex(470, 4), aliceMFBalance.toString());
 
